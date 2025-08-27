@@ -1,23 +1,81 @@
 use std::io::{self,Write};
-use std::process::Command;
 
-fn execute_backticks(cmd: &str) -> String {
-    let trimmed = cmd.trim_matches('`');
-    let output = Command::new(trimmed).output();
-    match output {
-        Ok(o) => String::from_utf8_lossy(&o.stdout).trim().to_string(),
-        Err(_) => format!("{}: command not found", trimmed),
-    }
+pub fn echo(args: &str) {
+    let _ = writeln!(io::stdout(), "{}", args);
 }
 
-pub fn echo(args: &[&str]) {
-    let mut result = Vec::new();
-    for arg in args {
-        if arg.starts_with('`') && arg.ends_with('`') {
-            result.push(execute_backticks(arg));
-        } else {
-            result.push(arg.to_string());
-        }
-    }
-    println!("{}", result.join(" "));
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // let mut env_var: HashMap<String,String> = HashMap::new(); 
+    // loop {
+        // let mut s = String::new();
+
+        // print!("$ ");
+        // if io::stdout().flush().is_err() {
+        //      return;
+        // }
+
+        // if io::stdin().read_line(&mut s).is_err() {
+        //     eprintln!("Erreur lecture stdin");
+        //     break;
+        // }
+
+        // let var = s.trim_end();
+        // println!("--{}",var);
+
+        // if let Some((key,value)) = s.split_once("=") {
+        //     env_var.insert(key.to_string(), value.trim_end().to_string());
+        //     println!("{:?}",env_var);
+        //     continue;
+        // }
+        // let conc : String = command[1..].concat();
+        // // let mut command = vec![];
+        // let mut s = String::new() ;
+        // for c in conc.chars()  { 
+        //     if c == '\"' {
+        //         // command.push(s.clone());
+        //         continue;
+        //     }else {
+        //         s.push(c);
+        //     }
+        // }
+
+        // command[1] = &s;
+        // println!("--command {:?}", command);
+        //   for arg in command.iter_mut() {
+        //     // println!("{}",arg);
+        //     if arg.starts_with("$") {
+        //         let value = match arg.ends_with("\""){
+        //                true => &arg[1..arg.len()-1],
+        //                false  => &arg[1..],
+        //         }; 
+        //         if let Some(val) = env_var.get(value) {
+        //             *arg = val;
+        //         }else {
+        //             *arg = "";
+        //         }
+        //     }
+        // }
+        //  println!("{:?}",command);
