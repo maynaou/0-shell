@@ -1,6 +1,34 @@
 use std::io::{self,Write};
 
 pub fn echo(args: &str) {
+
+   
+    //  let mut temp = args.to_string();
+    //  if args.contains("\\n") && !(args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'')) {
+    //     // println!("------------");
+    //      let mut count = 0;
+    //      let mut j = 0;
+    //     for (i,c) in args.chars().enumerate(){
+    //         if c == '\\' {
+    //             j = i;
+    //             count += 1;
+    //         }else {
+    //             if count == 1 {
+    //                 // println!("{}",&args[j..count+1]);
+    //                 temp = args.replace(&args[j..count+1], "n");
+    //             }else if count == 2 {
+    //                 temp = args.replace(&args[j..count+1], "\n");
+    //             }else {
+    //                 temp = args.replace(&args[j..count+1], "\\n");
+    //             }
+    //             // j = count;
+    //             count = count + i;
+    //         }
+    //     }
+    // }
+    //  println!("{}",temp);
+
+
     let _ = writeln!(io::stdout(), "{}", args.trim_matches(|c| c == '"' || c == '\''));
 }
 
