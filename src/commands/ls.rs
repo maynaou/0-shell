@@ -4,7 +4,6 @@ use std::os::unix::fs::PermissionsExt; // for executable
 use std::os::unix::fs::FileTypeExt;    // for pipe and socket
 use std::path::Path;
 pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
-    //println!("{:?}",flags);
     let mut files: HashMap<String, Vec<String>> = HashMap::new();
     let validfomart = vformat(flags);
     let flagsvalid = validflags(&validfomart);
@@ -116,7 +115,6 @@ fn checkaf(flags : &Vec<String>) -> bool {
     false
 }
 fn vformat(flags : Vec<String>) -> Vec<String> {
-    // let result : Vec<String> = Vec::new();
     if flags.len() > 0  {
           if  flags[0] == ""{
         return flags;
