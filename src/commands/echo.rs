@@ -1,7 +1,7 @@
 use std::io::{self,Write};
 
 pub fn echo(args: &str) {
-    let _ = writeln!(io::stdout(), "{}", args);
+    let _ = writeln!(io::stdout(), "{}", args.trim_matches(|c| c == '"' || c == '\''));
 }
 
 

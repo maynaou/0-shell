@@ -1,33 +1,77 @@
 use std::{io::{self, Write}};
 mod commands;
-use crate::commands::echo; 
+use crate::commands::{echo,mkdir,ls,cat}; 
+use std::collections::HashMap;
 fn main() {
     while let Some(cmd) = read_command() {
     // print!("$ ");
-
     let mut command = Vec::new();
     let line = cmd.split(" ").collect::<Vec<_>>().join(" "); 
-
     if let Some((cmd, rest)) = line.split_once(char::is_whitespace) {
-        command.push(cmd); 
-        command.push(rest); 
-    } else {
-        command.push(&line);
-    }
-
+        command.push(cmd.to_string());
+        if rest != "" {
+            command.push(rest.to_string()); 
+        }
+    } 
+   // println!("{:?}",command);
     if !command.is_empty(){
-         match command[0] {
+         match command[0].as_str() {
             "echo" => match command.len() > 1 {
                 true => echo::echo(&command[1].trim()),
                 false => echo::echo("")   
-            }
+            },
+            "mkdir" => match command.len() > 1 {
+                true => mkdir::mkdir(&command[1].trim()),
+                false => println!("mkdir: missing operand")
+            } 
+            "ls" => {
+                let result = ls::ls(command[1..].to_vec());
+                parsels(result);
+            },
+            "cat" => match command.len() > 1 {
+                true => cat::cat(&command[1].trim()),
+                false => cat::cat(""),
+            },
             "exit" => break,
              _ => println!("command not found"),  
           }
         }
+    }  
+}
 
+fn parsels(mut result : HashMap<String, Vec<String>>){
+    let result_len = result.len();
+    let mut countresult = 0;
+    for (key, files) in &mut result {
+        let filen = files.len();
+        let mut counter = 1 ;
+        if result_len == 1 || key == "." {
+            // files.sort();
+            for file in files {
+                if counter != filen {
+                    println!("{}", file);
+                    counter += 1
+                }else{
+                    print!("{}",file);
+                }
+            }
+        }else{
+            println!("{}:", key);
+            // files.sort();
+            for file in &mut *files {
+                if counter != filen {
+                    println!("{}", file);
+                    counter += 1
+                }else{
+                    println!("{}",file);
+                }
+            }
+        }
+        countresult += 1;
+        if countresult != result_len || key == "." || result_len == 1{
+            print!("\n");
+        }
     }
-      
 }
 
 fn read_command() -> Option<String> {
@@ -63,9 +107,8 @@ loop {
             }else {
                 quoit = Some(c);
             }
-        }else {
-             res_f.push(c);
-         }
+        }
+        res_f.push(c);
        }
     }
 
