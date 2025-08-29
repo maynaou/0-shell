@@ -43,10 +43,14 @@ fn main() {
     }  
 }
 
-fn parsels(mut result : HashMap<String, Vec<String>>){
-    let result_len = result.len();
+fn parsels(mut result : (HashMap<String, Vec<String>>, bool)){
+    if !result.1 {
+        println!("Invalid flag found");
+        return
+    }
+    let result_len = result.0.len();
     let mut countresult = 0;
-    for (key, files) in &mut result {
+    for (key, files) in &mut result.0 {
         let filen = files.len();
         let mut counter = 1 ;
         if result_len == 1 || key == "." {
