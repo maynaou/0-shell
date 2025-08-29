@@ -5,6 +5,7 @@ use std::collections::HashMap;
 fn main() {
     while let Some(cmd) = read_command() {
     // print!("$ ");
+    //println!("--{}",cmd);
     let mut command = Vec::new();
     let line = cmd.split(" ").collect::<Vec<_>>().join(" "); 
     if let Some((cmd, rest)) = line.split_once(char::is_whitespace) {
@@ -13,7 +14,7 @@ fn main() {
             command.push(rest.to_string()); 
         }
     } 
-   // println!("{:?}",command);
+    //println!("{:?}",command);
     if !command.is_empty(){
          match command[0].as_str() {
             "echo" => match command.len() > 1 {
@@ -33,7 +34,10 @@ fn main() {
                 false => cat::cat(""),
             },
             "exit" => break,
-             _ => println!("command not found"),  
+             _ => match !command[0].is_empty() {
+                true => println!("{}: not found",command[0]),
+                false => continue,
+            },  
           }
         }
     }  
