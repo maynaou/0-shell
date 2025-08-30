@@ -6,7 +6,9 @@ struct Format {
 }
 pub fn cat(args: &str) {
     let mut vec  = Vec::new();
+    let mut aq = false;
     if args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'') {
+        aq = true;
         vec.push(&args[1..args.len()-1]);
     }else {
         let v_arg : Vec<&str> = args.split_whitespace().collect();
@@ -43,21 +45,20 @@ pub fn cat(args: &str) {
                         },
                         false => format!("cat: {}: Is a directory", vec[i]),
                     },
-                    Err(_) => format!("cat: {}: No such file or directory", vec[i]),
+                    Err(_) => {
+                         format!("cat: {}: No such file or directory", vec[i])  
+                    } 
                 };
 
                 // println!("{}",content);
-                // let temp;
-                // if content.contains("\n") {
-                //     temp = content.replace("\n", "'$'\\n''").replace("\"", "'");
-                // }else if vec.len() == 1 {
-                //     println!("----");
-                //     temp = format!("cat: '{}': No such file or directory",vec[i]);
-                // }else {
-                //      println!("----");
-                //     temp = content;
-                // }
-                println!("{}", content);
+
+                let v:Vec<&str> = vec[i].split_whitespace().collect();
+                let mut temp = content;
+                if aq && v.len() > 1 {
+                       temp = format!("cat: '{}': No such file or directory",vec[i].replace("\n", "'$'\\n''"));
+                }
+
+                println!("{}", temp);
             }
         }
     }
