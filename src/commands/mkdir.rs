@@ -1,10 +1,13 @@
+use super::echo;
 use std::{fs,path::Path};
+
 pub fn mkdir(args :&str) {
+    let temp = echo::new_ligne(args);
     let mut vec  = Vec::new();
-    if args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'') {
-        vec.push(&args[1..args.len()-1]);
+    if  temp.starts_with('\"') && temp.ends_with('\"') || temp.starts_with('\'') && temp.ends_with('\'') {
+        vec.push(&temp[1..temp.len()-1]);
     }else {
-        let v_arg : Vec<&str> = args.split_whitespace().collect();
+        let v_arg : Vec<&str> = temp.split_whitespace().collect();
         vec.extend_from_slice(&v_arg);
     }
     for i in 0..vec.len() { 
