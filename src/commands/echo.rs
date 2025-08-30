@@ -1,13 +1,13 @@
 use std::io::{self,Write};
 
 pub fn echo(args: &str) {   
-    let temp = new_ligne(args);
+    let temp = new_ligne(args,true);
 
     let _ = writeln!(io::stdout(), "{}", temp.trim_matches(|c| c == '"' || c == '\''));
 }
 
 
-pub fn new_ligne(s : &str) -> String {
+pub fn new_ligne(s : &str,a : bool) -> String {
         let mut temp = s.to_string();
         let mut count = 0;
         let mut j = 0;
@@ -21,7 +21,7 @@ pub fn new_ligne(s : &str) -> String {
            }else if count > 0 {
                 if count == 1 && !b {
                         temp = s.replace(&s[j..j+count+1], &s[j+count..j+count+1]);
-                } else if count == 2 && b || count == 1 && b {
+                } else if count == 2 && a || count == 1 && b {
                    let res =  match &s[j+count..j+count+1] {
                           "n" =>"\n",
                           "r" => "\r",
