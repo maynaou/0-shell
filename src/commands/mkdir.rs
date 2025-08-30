@@ -20,7 +20,7 @@ pub fn mkdir(args :&str) {
       }
     }
   
-   /* match Path::new(args).exists() {
+   /* match Path::new(args).exists()kkkkkk {
         true => println!("mkdir: cannot create directory ‘{}’: File exists",args),
         false => match fs::create_dir(args) {
             Ok(n) => n, 
