@@ -1,7 +1,42 @@
 use std::io::{self,Write};
 
-pub fn echo(args: &str) {
-    let _ = writeln!(io::stdout(), "{}", args.trim_matches(|c| c == '"' || c == '\''));
+pub fn echo(args: &str) {   
+        let mut temp = args.to_string();
+        let mut count = 0;
+        let mut j = 0;
+        let mut b = false;
+        if args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'') {
+                b = true;
+        }
+        for c in args.chars(){
+           if c == '\\' {
+               count += 1;
+           }else if count > 0 {
+                if count == 1 && !b {
+                        temp = args.replace(&args[j..j+count+1], &args[j+count..j+count+1]);
+                } else if count == 2 && b || count == 1 && b {
+                   let res =  match &args[j+count..j+count+1] {
+                          "n" =>"\n",
+                          "r" => "\r",
+                          "t" => "\t",
+                          "v" => "\x0B", 
+                          "f" => "\x0C",
+                          "a" => "\x07",
+                          _ => &args[j+count-1..j+count+1]
+                   };
+
+                     temp = args.replace(&args[j..j+count+1], res);
+                 }else {
+                     temp = args.replace(&args[j..j+count+1], &args[j+count-1..j+count+1]);
+                 }
+                 j += count + 1;
+                 count = 0;
+             }else {
+                j += 1;
+             }
+         }
+
+    let _ = writeln!(io::stdout(), "{}", temp.trim_matches(|c| c == '"' || c == '\''));
 }
 
 
