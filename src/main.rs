@@ -1,6 +1,6 @@
 use std::{io::{self, Write}};
 mod commands;
-use crate::commands::{echo,mkdir,ls,cat}; 
+use crate::commands::{echo,mkdir,ls,cat,cd}; 
 use std::collections::HashMap;
 fn main() {
     while let Some(cmd) = read_command() {
@@ -30,13 +30,17 @@ fn main() {
                 true => cat::cat(&command[1].trim()),
                 false => cat::cat(""),
             },
+            "cd" => match command.len() > 1 {
+                true => cd::cd(&command[1].trim()),
+                false => cd::cd(""),
+            }
             "exit" => break,
              _ => match !command[0].is_empty() {
                 true => println!("{}: not found",command[0]),
                 false => continue,
             },  
           }
-        }
+       }
     }  
 }
 
