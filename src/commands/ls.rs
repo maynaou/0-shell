@@ -6,7 +6,7 @@ use std::path::Path;
 use std::os::unix::fs::MetadataExt;
 use std::time::{UNIX_EPOCH, SystemTime};
 use users::{get_user_by_uid, get_group_by_gid};
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, Duration};
 pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
     let mut files: HashMap<String, Vec<String>> = HashMap::new();
     let validfomart = vformat(flags);
@@ -20,70 +20,86 @@ pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
     let  path = getdirnames(&validfomart);
     for arg in &path {
         files.insert(arg.to_string(), Vec::new());
-           match fs::read_dir(&arg) {
+        match fs::read_dir(&arg) {
             Ok(iterdir) => {
-                for iter in iterdir {
-                    let iter = iter.unwrap();
+                let mut entries: Vec<fs::DirEntry> = iterdir.filter_map(Result::ok).collect();
+                entries.sort_by_key(|e| e.file_name());
+                for iter in entries {
                     let typofiter = iter.file_type().unwrap();
-
-                    let symbol = if typofiter.is_dir() {
-                        "/"
-                    } else if typofiter.is_symlink() {
-                        "@"
-                    } else if is_pipe(&iter.path()) {
-                        "|"
-                    } else if is_socket(&iter.path()) {
-                        "="
-                    } else if is_executable(&iter.path()) {
-                        "*"
-                    } else {
-                        ""
+                    let symbol = match () {
+                        _ if typofiter.is_dir() => "/",
+                        _ if typofiter.is_symlink() => "@",
+                        _ if is_pipe(&iter.path()) => "|",
+                        _ if is_socket(&iter.path()) => "=",
+                        _ if is_executable(&iter.path()) => "*",
+                        _ => "",
                     };
-                    
+        
                     let filename_os = iter.file_name();
-                    let mut filename = filename_os.to_string_lossy().into_owned(); 
-                    if let Some(vec) = files.get_mut(arg){
+                    let mut filename = filename_os.to_string_lossy().into_owned();
+        
+                    if let Some(vec) = files.get_mut(arg) {
                         if flaga {
                             if flagl {
-                                filename.insert_str(0, &generatel(filename.clone()))
+                                filename.insert_str(0, &generatel(iter.path()));
+                                if typofiter.is_symlink() {
+                                    match std::fs::read_link(&iter.path()) {
+                                        Ok(target) => filename.push_str(&format!(" -> {}", target.display())),
+                                        Err(_) => filename.push_str(" -> ?"),
+                                    }
+                                }
                             }
-                            if flagf  {
-                                filename.push_str(symbol);
-        
+                            if flagf {
+                                if flagl && !typofiter.is_symlink() {
+                                    filename.push_str(symbol);
+                                } else if !flagl {
+                                    filename.push_str(symbol);
+                                }
                             }
                             vec.push(filename);
-                        }else{
+                        } else {
                             if !filename.starts_with('.') {
                                 if flagl {
-                                    filename.insert_str(0, &generatel(filename.clone()))
+                                    filename.insert_str(0, &generatel(iter.path()));
+                                    if typofiter.is_symlink() {
+                                        match std::fs::read_link(&iter.path()) {
+                                            Ok(target) => filename.push_str(&format!(" -> {}", target.display())),
+                                            Err(_) => filename.push_str(" -> ?"),
+                                        }
+                                    }
                                 }
-                                if flagf  {
-                                    filename.push_str(symbol);
-            
+                                if flagf {
+                                    if flagl && !typofiter.is_symlink() {
+                                        filename.push_str(symbol);
+                                    } else if !flagl {
+                                        filename.push_str(symbol);
+                                    }
                                 }
                                 vec.push(filename);
                             }
                         }
                     }
                 }
-            },
+            }
             Err(_) => {
-                if let Some(vec) = files.get_mut(arg){
+                if let Some(vec) = files.get_mut(arg) {
                     vec.push(format!("ls: cannot access '{}': No such file or directory", arg));
                 }
             }
         }
+        
     }
-        for (_, vec_files) in &mut files {
-            vec_files.sort();
-        }
+        // for (_, vec_files) in &mut files {
+        //     vec_files.sort();
+        // }
     (files, true)
 }
 
-fn generatel(file: String) -> String {
+fn generatel(file: impl AsRef<Path>) -> String {
+    // println!("{:?}",file);
     let meta = match fs::symlink_metadata(&file) {
         Ok(m) => m,
-        Err(_) => return "?????????".to_string(),
+        Err(_) => return "?????????----".to_string(),
     };
 
     let nlink = meta.nlink();
@@ -95,18 +111,8 @@ fn generatel(file: String) -> String {
 
     let modified: SystemTime = meta.modified().unwrap_or(UNIX_EPOCH);
     let datetime: DateTime<Local> = modified.into();
-    let time_str = datetime.format("%b %e %H:%M").to_string();
-    
-    // let file_type = meta.file_type();
-    // let symlink_target = if file_type.is_symlink() {
-    //     match fs::read_link(&file) {
-    //         Ok(target) => format!(" {} ->", target.display()),
-    //         Err(_) => "".to_string(),
-    //     }
-    // } else {
-    //     "".to_string()
-    // };
-    // println!("{}", symlink_target);
+    let datetime_plus_one = datetime + Duration::hours(1);
+    let time_str = datetime_plus_one.format("%b %e %H:%M").to_string();
     
     let s = size.to_string().chars().count();
     let numbspaces =  5usize.saturating_sub(s);
@@ -162,15 +168,14 @@ fn format_permissions(meta: &fs::Metadata) -> String {
 fn getdirnames(flags : &Vec<String>) -> Vec<String> {
     let mut result : Vec<String> = Vec::new();
     let mut bol = false;
+    // println!("{:?}", flags);
     for arg in flags {
         if !arg.starts_with("-") && arg != "" {
             bol = true;
             result.push(arg.clone());
         }
     }
-    if  flags.len() > 0 && flags[0] == "" || !bol {
-        result.push(".".to_string())
-    }else {
+    if  !bol {
         result.push(".".to_string())
     }
 
