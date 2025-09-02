@@ -9,22 +9,20 @@ pub fn cd(args :&str) {
         let v_arg : Vec<&str> = args.split_whitespace().collect();
         vec.extend_from_slice(&v_arg);
     }
-
-    println!("{:?}",vec);
-    for i in 0..vec.len() {
-
-       let _ = match vec[i] {
+    
+       match vec[0] {
             "~" | "" => {
-                    if let Ok(pwd) = env::current_dir() {
-                        unsafe { env::set_var("OLDPWD",pwd) };
-                    }
+                if let Ok(pwd) = env::current_dir() {
+                    unsafe { env::set_var("OLDPWD",pwd) };
+                }
+
                 if let Ok(home) = env::var("HOME") {
                     if let Err(e) = set_current_dir(Path::new(&home)) {
                         eprintln!("cd: {}", e);
                     }
                 }
             }
-            "." => continue,
+            "." => print!(""),
             ".." => {
                 if let Ok(current) = env::current_dir() {
                      unsafe { env::set_var("OLDPWD", &current) };
@@ -37,8 +35,9 @@ pub fn cd(args :&str) {
             }
 
             "-" => {
+               
                 if let Ok(oldpwd) = env::var("OLDPWD") {
-                      if let Ok(pwd) = env::current_dir() {
+                        if let Ok(pwd) = env::current_dir() {
                             unsafe { env::set_var("OLDPWD",pwd) };
                         }
                     if let Err(e) = set_current_dir(&oldpwd) {
@@ -51,27 +50,26 @@ pub fn cd(args :&str) {
                 }
             }
             _ => {
-                match metadata(vec[i]) {
+
+                match metadata(vec[0]) {
                     Ok(meta) => {
                         if meta.is_dir() {
                             if let Ok(pwd) = env::current_dir() {
                                 unsafe { env::set_var("OLDPWD",pwd) };
                             }
 
-                            if let Err(e) = set_current_dir(Path::new(vec[i])) {
+                            if let Err(e) = set_current_dir(Path::new(vec[0])) {
                                 eprintln!("cd: {}", e);
                             }
                            
                         } else {
-                            eprintln!("cd: can't cd to {}", vec[i]);
+                            eprintln!("cd: can't cd to {}", vec[0]);
                         }
                     },
-                    Err(_) => eprintln!("cd: can't cd to {}", vec[i]),
+                    Err(_) => {
+                         eprintln!("cd: can't cd to {}", vec[0])
+                    },
                 }
             }
-
-        };
-
-
     }
 }
