@@ -15,6 +15,9 @@ pub fn cd(args :&str) {
 
        let _ = match vec[i] {
             "~" | "" => {
+                    if let Ok(pwd) = env::current_dir() {
+                        unsafe { env::set_var("OLDPWD",pwd) };
+                    }
                 if let Ok(home) = env::var("HOME") {
                     if let Err(e) = set_current_dir(Path::new(&home)) {
                         eprintln!("cd: {}", e);
@@ -58,6 +61,7 @@ pub fn cd(args :&str) {
                             if let Err(e) = set_current_dir(Path::new(vec[i])) {
                                 eprintln!("cd: {}", e);
                             }
+                           
                         } else {
                             eprintln!("cd: can't cd to {}", vec[i]);
                         }
