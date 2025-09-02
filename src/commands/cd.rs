@@ -35,7 +35,9 @@ pub fn cd(args :&str) {
 
             "-" => {
                 if let Ok(oldpwd) = env::var("OLDPWD") {
-                    println!("{}",oldpwd);
+                      if let Ok(pwd) = env::current_dir() {
+                            unsafe { env::set_var("OLDPWD",pwd) };
+                        }
                     if let Err(e) = set_current_dir(&oldpwd) {
                         eprintln!("cd: {}", e);
                     } else {
@@ -49,7 +51,10 @@ pub fn cd(args :&str) {
                 match metadata(vec[i]) {
                     Ok(meta) => {
                         if meta.is_dir() {
-                              unsafe { env::set_var("OLDPWD",vec[i]) };
+                            if let Ok(pwd) = env::current_dir() {
+                                unsafe { env::set_var("OLDPWD",pwd) };
+                            }
+
                             if let Err(e) = set_current_dir(Path::new(vec[i])) {
                                 eprintln!("cd: {}", e);
                             }
@@ -63,27 +68,6 @@ pub fn cd(args :&str) {
 
         };
 
-        match result {
-        Ok(()) => {
-            // Only update OLDPWD if we successfully changed directories
-            if let Some(old_dir) = current_dir {
-                env::set_var("OLDPWD", old_dir);
-            }
-        }
-        Err(e) => {
-            eprintln!("cd: {}", e);
-        }
-    }
-        /*if vec[i] == "." {
-            continue;
-        }else if vec[i] == "~" {
-            let s = match env::var("HOME") {
-                Ok(n) => n,
-                Err(_) => todo!(),
-            };
-            
-            let _ = set_current_dir(Path::new(&s)) ;
-                     
-        }*/
+
     }
 }
