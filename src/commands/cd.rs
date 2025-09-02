@@ -1,4 +1,4 @@
-use std::{env,path::Path,env::set_current_dir};
+use std::{env,path::Path,env::set_current_dir,fs::metadata};
 
 pub fn cd(args :&str) {
    
@@ -12,7 +12,69 @@ pub fn cd(args :&str) {
 
     println!("{:?}",vec);
     for i in 0..vec.len() {
-        if vec[i] == "." {
+
+       let _ = match vec[i] {
+            "~" | "" => {
+                if let Ok(home) = env::var("HOME") {
+                    if let Err(e) = set_current_dir(Path::new(&home)) {
+                        eprintln!("cd: {}", e);
+                    }
+                }
+            }
+            "." => continue,
+            ".." => {
+                if let Ok(current) = env::current_dir() {
+                     unsafe { env::set_var("OLDPWD", &current) };
+                    if let Some(parent) = current.parent() {
+                        if let Err(e) = set_current_dir(parent) {
+                            eprintln!("cd: {}", e);
+                        }
+                    }
+                }
+            }
+
+            "-" => {
+                if let Ok(oldpwd) = env::var("OLDPWD") {
+                    println!("{}",oldpwd);
+                    if let Err(e) = set_current_dir(&oldpwd) {
+                        eprintln!("cd: {}", e);
+                    } else {
+                        println!("{}", oldpwd);
+                    }
+                } else {
+                    eprintln!("cd: OLDPWD not set");
+                }
+            }
+            _ => {
+                match metadata(vec[i]) {
+                    Ok(meta) => {
+                        if meta.is_dir() {
+                              unsafe { env::set_var("OLDPWD",vec[i]) };
+                            if let Err(e) = set_current_dir(Path::new(vec[i])) {
+                                eprintln!("cd: {}", e);
+                            }
+                        } else {
+                            eprintln!("cd: can't cd to {}", vec[i]);
+                        }
+                    },
+                    Err(_) => eprintln!("cd: can't cd to {}", vec[i]),
+                }
+            }
+
+        };
+
+        match result {
+        Ok(()) => {
+            // Only update OLDPWD if we successfully changed directories
+            if let Some(old_dir) = current_dir {
+                env::set_var("OLDPWD", old_dir);
+            }
+        }
+        Err(e) => {
+            eprintln!("cd: {}", e);
+        }
+    }
+        /*if vec[i] == "." {
             continue;
         }else if vec[i] == "~" {
             let s = match env::var("HOME") {
@@ -22,6 +84,6 @@ pub fn cd(args :&str) {
             
             let _ = set_current_dir(Path::new(&s)) ;
                      
-        }
+        }*/
     }
 }
