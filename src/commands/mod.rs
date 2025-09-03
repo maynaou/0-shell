@@ -6,3 +6,4 @@ pub mod cd;
 pub mod cp;
 pub mod pwd;
 pub mod mv;
+pub mod rm;

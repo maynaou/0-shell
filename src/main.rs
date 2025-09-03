@@ -1,6 +1,6 @@
 use std::{io::{self, Write}};
 mod commands;
-use crate::commands::{echo,mkdir,ls,cat,cd,cp,pwd,mv}; 
+use crate::commands::{echo,mkdir,ls,cat,cd,cp,pwd,mv,rm}; 
 use std::collections::HashMap;
 fn main() {
     while let Some(cmd) = read_command() {
@@ -46,6 +46,7 @@ fn main() {
                 true => mv::mv(&command[1].trim()),
                 false => eprintln!("mv: missing file operand"),
             },
+            "rm" => rm::rm(&command[1].trim()),
             "exit" => break,
              _ => match !command[0].is_empty() {
                 true => println!("{}: not found",command[0]),
