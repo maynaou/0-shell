@@ -1,6 +1,6 @@
 use std::{io::{self, Write}};
 mod commands;
-use crate::commands::{echo,mkdir,ls,cat,cd,cp}; 
+use crate::commands::{echo,mkdir,ls,cat,cd,cp,pwd}; 
 use std::collections::HashMap;
 fn main() {
     while let Some(cmd) = read_command() {
@@ -33,7 +33,11 @@ fn main() {
             "cd" => match command.len() > 1 {
                 true => cd::cd(&command[1].trim()),
                 false => cd::cd(""),
-            }
+            },
+            "pwd" => match command.len() == 1 {
+                true => pwd::pwd(),
+                false => eprintln!("pwd: too many arguments"),
+            },
             "cp" =>  cp::cp(&command[1].trim()),
             "exit" => break,
              _ => match !command[0].is_empty() {

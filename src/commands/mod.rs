@@ -4,3 +4,4 @@ pub mod ls;
 pub mod cat;
 pub mod cd;
 pub mod cp;
+pub mod pwd;
