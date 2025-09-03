@@ -6,15 +6,19 @@ pub fn mv(args: &str) {
     let parts: Vec<&str> = args.split_whitespace().collect();
     
     if parts.len() < 2 {
-        eprintln!("mv: missing file operand");
+        if parts.is_empty() {
+            eprintln!("mv: missing file operand");
+        } else {
+            eprintln!("mv: missing destination file operand after '{}'", parts[0]);       
+        }
         return;
     }
     
-    let destination = parts[parts.len() - 1]; 
-    let sources = &parts[0..parts.len() - 1];
+    let destination = parts[parts.len() - 1];
+    let sources = &parts[0..parts.len() - 1]; 
     
-    let dest_is_dir = Path::new(destination).is_dir();
-    let dest_exists = Path::new(destination).exists();
+    let dest_is_dir = Path::new(destination).is_dir(); 
+    let dest_exists = Path::new(destination).exists(); 
     
     if sources.len() > 1 && !dest_is_dir && dest_exists {
         eprintln!("mv: target '{}' is not a directory", destination);
