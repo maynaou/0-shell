@@ -1,8 +1,12 @@
-use std::env;
+use std::{env, path};
 
 pub fn pwd() {
-    match env::current_dir() {
-        Ok(path) => println!("{}", path.display()),
-        Err(e) => eprintln!("pwd: {}", e)
+    // unsafe { env::set_var("OLDPWD",pwd) }
+    match env::var("PWD") {
+        Ok(path) => println!("{}", path),
+        Err(_) => match env::current_dir() {
+              Ok(path) => println!("{}",path.display()),
+              Err(_) => println!(".")
+        }
     }
 }

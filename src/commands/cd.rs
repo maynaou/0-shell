@@ -21,6 +21,10 @@ pub fn cd(args :&str) {
                         eprintln!("cd: {}", e);
                     }
                 }
+
+                if let Ok(pwd) = env::current_dir() {
+                    unsafe { env::set_var("PWD",pwd) };
+                }
             }
             "." => print!(""),
             ".." => {
@@ -31,6 +35,10 @@ pub fn cd(args :&str) {
                             eprintln!("cd: {}", e);
                         }
                     }
+                }
+
+                unsafe {
+                    env::remove_var("PWD");
                 }
             }
 
@@ -60,6 +68,9 @@ pub fn cd(args :&str) {
 
                             if let Err(e) = set_current_dir(Path::new(vec[0])) {
                                 eprintln!("cd: {}", e);
+                            }
+                            if let Ok(pwd) = env::current_dir() {
+                                unsafe { env::set_var("PWD",pwd) };
                             }
                            
                         } else {
