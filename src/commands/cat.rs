@@ -1,17 +1,23 @@
-use std::{fs, fs::metadata, io, path::Path};
+use std::{
+    fs,
+    fs::metadata,
+    io::{self, Read,Write},
+};
 #[derive(Debug)]
 struct Format {
     count: usize,
     s: String,
 }
 pub fn cat(args: &str) {
-    let mut vec  = Vec::new();
+    let mut vec = Vec::new();
     let mut aq = false;
-    if args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'') {
+    if args.starts_with('\"') && args.ends_with('\"')
+        || args.starts_with('\'') && args.ends_with('\'')
+    {
         aq = true;
-        vec.push(&args[1..args.len()-1]);
-    }else {
-        let v_arg : Vec<&str> = args.split_whitespace().collect();
+        vec.push(&args[1..args.len() - 1]);
+    } else {
+        let v_arg: Vec<&str> = args.split_whitespace().collect();
         vec.extend_from_slice(&v_arg);
     }
 
@@ -36,26 +42,24 @@ pub fn cat(args: &str) {
             } else {
                 let content = match metadata(vec[i]) {
                     Ok(n) => match n.is_file() {
-                        true => match Path::new(vec[i]).exists() {
-                            true => match fs::read_to_string(vec[i]) {
-                                Ok(n) => n,
-                                Err(_) => "error".to_string(),
-                            },
-                            false => format!("cat: {}: No such file or directory", vec[i]),
+                        true => match fs::read_to_string(vec[i]) {
+                            Ok(n) => n,
+                            Err(_) => "error".to_string(),
                         },
                         false => format!("cat: {}: Is a directory", vec[i]),
                     },
                     Err(_) => {
-                         format!("cat: {}: No such file or directory", vec[i])  
-                    } 
+                        format!("cat: {}: No such file or directory", vec[i])
+                    }
                 };
 
-                // println!("{}",content);
-
-                let v:Vec<&str> = vec[i].split_whitespace().collect();
+                let v: Vec<&str> = vec[i].split_whitespace().collect();
                 let mut temp = content;
                 if aq && v.len() > 1 {
-                       temp = format!("cat: '{}': No such file or directory",vec[i].replace("\n", "'$'\\n''"));
+                    temp = format!(
+                        "cat: '{}': No such file or directory",
+                        vec[i].replace("\n", "'$'\\n''")
+                    );
                 }
 
                 println!("{}", temp);
@@ -91,18 +95,21 @@ fn format_handle(vec: Vec<&str>) -> Format {
 }
 
 fn dash_empty() {
+    let  mut stdin = io::stdin();
+    let mut buffer = [0;1];// Buffer comme dans le C original
+    
     loop {
-        let mut input = String::new();
-        match io::stdin().read_line(&mut input) {
-            Ok(0) => {
-                break;
-            }
-            Ok(_) => {
-                print!("{}", input);
+        match stdin.read(&mut buffer) {
+            Ok(0) => break, 
+            Ok(n) => {
+                if io::stdout().write(&buffer[..n]).is_err() {
+                    eprintln!("cat: write error");
+                }
+                let _ = io::stdout().flush();
             }
             Err(e) => {
-                eprintln!("cat: error reading the input: {}", e);
-                continue;
+                eprintln!("cat: read error: {}", e);
+                // std::process::exit(1);
             }
         }
     }

@@ -1,4 +1,4 @@
-use std::{env, path};
+use std::{env};
 
 pub fn pwd() {
     // unsafe { env::set_var("OLDPWD",pwd) }
