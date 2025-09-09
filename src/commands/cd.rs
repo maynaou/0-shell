@@ -1,7 +1,7 @@
+use super::cat;
 use std::{env,path::Path,env::set_current_dir,fs::metadata};
 
 pub fn cd(args :&str) {
-   
     let mut vec  = Vec::new();
     if  args.starts_with('\"') && args.ends_with('\"') || args.starts_with('\'') && args.ends_with('\'') {
         vec.push(&args[1..args.len()-1]);
@@ -9,7 +9,14 @@ pub fn cd(args :&str) {
         let v_arg : Vec<&str> = args.split_whitespace().collect();
         vec.extend_from_slice(&v_arg);
     }
-    
+    let b = cat::format_handle(vec.clone(), "cd");
+       if !b.s.is_empty() {
+        if b.count < 2 {
+            if let Some(first_char) = b.s.chars().find(|&c| c != '-')
+                && b.s.starts_with('-')
+            {
+                println!("cd: Illegal option '{}'", first_char);
+            } else {
        match vec[0] {
             "~" | "" => {
                 if let Ok(pwd) = env::current_dir() {
@@ -28,7 +35,6 @@ pub fn cd(args :&str) {
             }
             "." => print!(""),
             ".." => {
-
                 match env::current_dir() {
                     Ok(current) =>  {
                      unsafe { env::set_var("OLDPWD", &current) };
@@ -43,7 +49,6 @@ pub fn cd(args :&str) {
             }
 
             "-" => {
-               
                 if let Ok(oldpwd) = env::var("OLDPWD") {
                         if let Ok(pwd) = env::current_dir() {
                             unsafe { env::set_var("OLDPWD",pwd) };
@@ -81,5 +86,10 @@ pub fn cd(args :&str) {
                     },
                 }
             }
+    }
+     }
+        } else {
+            println!("cd: Illegal option --");
+        }
     }
 }
