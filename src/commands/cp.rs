@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-use super::cat;
+
 use std::fs;
 use std::path::Path;
 
