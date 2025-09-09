@@ -28,17 +28,17 @@ pub fn cd(args :&str) {
             }
             "." => print!(""),
             ".." => {
-                if let Ok(current) = env::current_dir() {
+
+                match env::current_dir() {
+                    Ok(current) =>  {
                      unsafe { env::set_var("OLDPWD", &current) };
-                    if let Some(parent) = current.parent() {
+                     if let Some(parent) = current.parent() {
                         if let Err(e) = set_current_dir(parent) {
                             eprintln!("cd: {}", e);
                         }
-                    }
-                }
-
-                unsafe {
-                    env::remove_var("PWD");
+                     }
+                     },
+                    Err(_) => eprintln!("cd: can't cd to .."),
                 }
             }
 
@@ -58,7 +58,6 @@ pub fn cd(args :&str) {
                 }
             }
             _ => {
-
                 match metadata(vec[0]) {
                     Ok(meta) => {
                         if meta.is_dir() {

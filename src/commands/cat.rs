@@ -21,12 +21,12 @@ pub fn cat(args: &str) {
         vec.extend_from_slice(&v_arg);
     }
 
-    if vec.len() == 0 || vec[0] == "--" && vec.len() == 1 {
-        dash_empty();
-        return;
-    }
+    // if vec.len() == 0 || vec[0] == "--" && vec.len() == 1 {
+        
+    //     return;
+    // }
 
-    let b = format_handle(vec.clone());
+    let b = format_handle(vec.clone(),"cat");
     if !b.s.is_empty() {
         if b.count < 2 {
             if let Some(first_char) = b.s.chars().find(|&c| c != '-')
@@ -37,7 +37,7 @@ pub fn cat(args: &str) {
                 for i in 0..vec.len() {
                     if vec[i] == "-" {
                         dash_empty();
-                    } else if vec[i] == "" || vec[i] == "--" {
+                    } else if  vec[i] == "--" {
                         continue;
                     } else {
                         let content = match metadata(vec[i]) {
@@ -69,12 +69,14 @@ pub fn cat(args: &str) {
         } else {
             println!("cat: unrecognized option '{}'", b.s);
         }
+    }else {
+        dash_empty();
     }
 }
 
-pub fn format_handle(vec: Vec<&str>) -> Format {
-    println!("{:?}", vec);
+pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
     let mut count = 0;
+    let mut s = String::new();
     for i in 0..vec.len() {
         for c in vec[i].chars() {
             if c == '-' {
@@ -84,20 +86,43 @@ pub fn format_handle(vec: Vec<&str>) -> Format {
             }
         }
 
-        if count > 0 && vec[i] != "-r" {
-            if (vec[i] != "-" && vec[i] != "--") || vec.len() < 3 {
+        if count == 0 {
+            s =  vec[i].to_string();
+        }
+
+        match flag {
+            "cat" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2)  => {
                 return Format {
                     count,
                     s: vec[i].to_string(),
                 };
+            },
+            "mkdir" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2) => {
+                    return Format {
+                    count,
+                    s: vec[i].to_string(),
+                    };
+            },
+            "rm" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
+                if vec[i] != "-r"  {
+                      return Format {
+                      count,
+                      s: vec[i].to_string(),
+                     };
+                }
+                count = 0;
             }
-        } else {
-            count = 0;
-        }
+            _ => {
+                 count = 0;
+                 continue
+            },
+         }
+         
     }
+
     return Format {
         count: 0,
-        s: Default::default(),
+        s: s,
     };
 }
 

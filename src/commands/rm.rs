@@ -2,15 +2,11 @@ use super::cat;
 use std::{fs, fs::metadata, io, io::Write, path::Path};
 pub fn rm(args: &str) {
     let vec: Vec<&str> = args.split_whitespace().collect();
-    println!("{:?}", vec);
-    let b = cat::format_handle(vec.clone());
-    println!("{:?}",b);
+    let b = cat::format_handle(vec.clone(),"rm");
     if !b.s.is_empty() {
-          if b.count == 2 && b.s[b.count..].is_empty() {
-                println!("mkdir: missing operand");
-        } else if b.count < 3 {
+        if b.count < 2 {
             if let Some(first_char) = b.s.chars().find(|&c| c != '-')  && b.s.starts_with('-')  {
-                println!("mkdir: invalid option -- '{}'", first_char);
+                println!("rm: invalid option -- '{}'", first_char);
             } else {
                 let mut b = false;
 
@@ -19,7 +15,7 @@ pub fn rm(args: &str) {
                 }
 
                 for i in 0..vec.len() {
-                    if  vec[i] == "-r" || vec[i] == "" || vec[i] == "--" {
+                    if vec[i] == "--" || vec[i] == "---" || vec[i] == "-r" {
                         continue;
                     }
                     let path = match Path::new(vec[i]).exists() {
@@ -88,8 +84,9 @@ pub fn rm(args: &str) {
                 }
             }
         } else {
-            println!("mkdir: unrecognized option '{}'", b.s);
+            println!("rm: unrecognized option '{}'", b.s);
         }
+    } else {
+         println!("mkdir: missing operand"); 
     }
-    // println!("{:?}",vec);
 }

@@ -2,7 +2,6 @@ use std::io::{self,Write};
 
 pub fn echo(args: &str) {   
     let temp = new_ligne(args,true);
-
     let _ = writeln!(io::stdout(), "{}", temp.trim_matches(|c| c == '"' || c == '\''));
 }
 
