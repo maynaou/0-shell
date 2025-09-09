@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 mod commands;
 <<<<<<< HEAD
+<<<<<<< HEAD
 mod parser;
 use crate::commands::{cat, cd, cp, echo, ls, mkdir, mv, pwd, rm};
 use fork::{Fork, fork};
@@ -8,6 +9,8 @@ fn main() {
     unsafe {
         signal(2, signal_handler);
 =======
+=======
+>>>>>>> parent of 8fc6def (update cp vr finale)
 use crate::commands::{echo,mkdir,ls,cat,cd}; 
 use std::collections::HashMap;
 fn main() {

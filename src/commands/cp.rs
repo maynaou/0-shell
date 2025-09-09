@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 use super::cat;
 use std::fs;
 use std::path::Path;
@@ -73,5 +74,7 @@ pub fn cp(args: &str) {
         }
     }
 }
+=======
+>>>>>>> parent of 8fc6def (update cp vr finale)
 =======
 >>>>>>> parent of 8fc6def (update cp vr finale)
