@@ -106,8 +106,8 @@ fn parsels(mut result : (HashMap<String, Vec<String>>, bool)){
                                     true => cat::cat(&command[1].trim()),
                                     false => cat::cat(""),
                                 },
-                                "pwd" => match command.len() > 1 {
-                                    true => pwd::pwd(&command[1].trim()),
+                                "pwd" => match command.len() == 1 {
+                                    true => pwd::pwd(),
                                     false => eprintln!("pwd: too many arguments"),
                                 },
                                 "cp" => match command.len() > 1 {
