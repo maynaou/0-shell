@@ -21,10 +21,6 @@ pub fn cat(args: &str) {
         vec.extend_from_slice(&v_arg);
     }
 
-    // if vec.len() == 0 || vec[0] == "--" && vec.len() == 1 {
-        
-    //     return;
-    // }
 
     let b = format_handle(vec.clone(),"cat");
     if !b.s.is_empty() {
@@ -112,6 +108,13 @@ pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
                 }
                 count = 0;
             }
+             "cp" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
+                     return Format {
+                      count,
+                      s: vec[i].to_string(),
+                     };
+             }
+
             _ => {
                  count = 0;
                  continue
