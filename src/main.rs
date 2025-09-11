@@ -1,33 +1,42 @@
 use std::io::{self, Write};
 mod commands;
 mod parser;
-use crate::commands::{cat, cd, cp, echo, ls, mkdir, mv, pwd, rm};
+use crate::commands::*;
 use fork::{Fork, fork};
 fn main() {
     unsafe {
         signal(2, signal_handler);
     }
-    
+
     while let Some(cmd) = parser::read_command() {
         let mut command = Vec::new();
-        let line = cmd.split(" ").collect::<Vec<_>>().join(" ");
-        if let Some((cmd, rest)) = line.split_once(char::is_whitespace) {
+        let line: String;
+
+        if let Some((cmd, rest)) = cmd.split_once(' ') {
             command.push(cmd.to_string());
+
             if rest != "" {
-                command.push(rest.to_string());
+                if rest.starts_with('\"') && rest.ends_with('\"')
+                    || rest.starts_with('\'') && rest.ends_with('\'')
+                {
+                    line = rest.split(" ").collect::<Vec<_>>().join(" ");
+                } else {
+                    line = rest.split_whitespace().collect::<Vec<_>>().join(" ");
+                }
+                command.push(line.to_string());
             }
+        } else {
+            command.push(cmd);
         }
 
         if !command.is_empty() {
-            match command[0].as_str() {
-                // Commandes qui ne doivent PAS être forkées
+            match command[0].trim_matches(|c| c == '"' || c == '\'') {
                 "cd" => match command.len() > 1 {
                     true => cd::cd(&command[1].trim()),
                     false => cd::cd(""),
                 },
                 "exit" => break,
-
-                // Toutes les autres commandes sont forkées
+                "" => continue,
                 _ => {
                     match fork() {
                         Ok(Fork::Child) => {
@@ -35,7 +44,7 @@ fn main() {
                                 signal(2, signal_handler_exit);
                             }
                             // Processus enfant - exécuter la commande
-                            match command[0].as_str() {
+                            match command[0].trim_matches(|c| c == '"' || c == '\'') {
                                 "echo" => match command.len() > 1 {
                                     true => echo::echo(&command[1].trim()),
                                     false => echo::echo(""),
@@ -65,12 +74,14 @@ fn main() {
                                     false => eprintln!("mv: missing file operand"),
                                 },
                                 "rm" => rm::rm(&command[1].trim()),
-                                _ => match !command[0].is_empty() {
-                                    true => println!("{}: not found", command[0]),
-                                    false => {}
-                                },
+                                _ => {
+                                    if command[0].starts_with('\"') && command[0].ends_with('\"') {
+                                        println!("{}: not found", command[0].trim_matches('\"'));
+                                    } else {
+                                        println!("{}: not found", command[0].trim_matches('\''));
+                                    }
+                                }
                             }
-                            // Terminer le processus enfant
                             std::process::exit(0);
                         }
                         Ok(Fork::Parent(ch)) => {

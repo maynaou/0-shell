@@ -41,7 +41,8 @@ pub fn read_command() -> Option<String> {
         }
 
         if quoit.is_none() {
-            return Some(res_f);
+            // print!("sssssssssss{}",&res_f);
+            return Some(res_f.trim().to_string());
         } else {
             print!("> ");
         }
