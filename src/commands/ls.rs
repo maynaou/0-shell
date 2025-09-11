@@ -129,14 +129,12 @@ fn generatel(file: impl AsRef<Path>) -> String {
     )
 }
 
-
 fn format_permissions(meta: &fs::Metadata) -> String {
     let file_type = meta.file_type();
     let mode = meta.mode();
 
     let mut result = String::new();
 
-    // first character: type
     if file_type.is_dir() {
         result.push('d');
     } else if file_type.is_symlink() {
@@ -150,20 +148,43 @@ fn format_permissions(meta: &fs::Metadata) -> String {
     } else if file_type.is_block_device() {
         result.push('b');
     } else {
-        result.push('-'); // regular file
+        result.push('-');
     }
 
-    // owner, group, others permissions
-    for i in (0..3).rev() { // user, group, others
+    for i in (0..3).rev() {
         let shift = i * 3;
+
         result.push(if (mode >> (shift + 2)) & 1 != 0 { 'r' } else { '-' });
+
         result.push(if (mode >> (shift + 1)) & 1 != 0 { 'w' } else { '-' });
-        result.push(if (mode >> shift) & 1 != 0 { 'x' } else { '-' });
+
+        let exec = (mode >> shift) & 1 != 0;
+        if shift == 6 {
+
+            if (mode & 0o4000) != 0 {
+                result.push(if exec { 's' } else { 'S' });
+            } else {
+                result.push(if exec { 'x' } else { '-' });
+            }
+        } else if shift == 3 {
+
+            if (mode & 0o2000) != 0 {
+                result.push(if exec { 's' } else { 'S' });
+            } else {
+                result.push(if exec { 'x' } else { '-' });
+            }
+        } else if shift == 0 {
+
+            if (mode & 0o1000) != 0 {
+                result.push(if exec { 't' } else { 'T' });
+            } else {
+                result.push(if exec { 'x' } else { '-' });
+            }
+        }
     }
 
     result
 }
-
 
 fn getdirnames(flags : &Vec<String>) -> Vec<String> {
     let mut result : Vec<String> = Vec::new();
