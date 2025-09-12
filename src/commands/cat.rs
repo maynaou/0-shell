@@ -87,20 +87,15 @@ pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
         }
 
         match flag {
-            "cat" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2)  => {
+            "cat" | "mkdir" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2)  => {
                 return Format {
                     count,
                     s: vec[i].to_string(),
                 };
             },
-            "mkdir" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2) => {
-                    return Format {
-                    count,
-                    s: vec[i].to_string(),
-                    };
-            },
-            "rm" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
-                if vec[i] != "-r"  {
+
+            "rm" |  "cp" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
+                if vec[i] != "-r" || flag == "cp" {
                       return Format {
                       count,
                       s: vec[i].to_string(),
@@ -108,12 +103,13 @@ pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
                 }
                 count = 0;
             }
-             "cp" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
-                     return Format {
+
+             "pwd" | "cd" if  !vec[i][count..].is_empty() || count > 0 => {
+                      return Format {
                       count,
                       s: vec[i].to_string(),
                      };
-             }
+              }
 
             _ => {
                  count = 0;
@@ -131,7 +127,7 @@ pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
 
 fn dash_empty() {
     let mut stdin = io::stdin();
-    let mut buffer = [0; 1]; // Buffer comme dans le C original
+    let mut buffer = [0; 1]; 
 
     loop {
         match stdin.read(&mut buffer) {

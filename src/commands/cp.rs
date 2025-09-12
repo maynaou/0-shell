@@ -23,7 +23,6 @@ pub fn cp(args: &str) {
         return;
     }
     let b = cat::format_handle(vec.clone(), "cat");
-    println!("b : {} - {}",b.s,b.count);
     if !b.s.is_empty() {
         if b.count < 2 {
             if let Some(first_char) = b.s.chars().find(|&c| c != '-')

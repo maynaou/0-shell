@@ -1,3 +1,4 @@
+use super::cat;
 use std::{env, env::set_current_dir, fs::metadata, path::Path};
 
 pub fn cd(args: &str) {
@@ -14,72 +15,90 @@ pub fn cd(args: &str) {
         }
     }
 
-    match vec[0] {
-        "~" | "" => {
-            if let Ok(pwd) = env::current_dir() {
-                unsafe { env::set_var("OLDPWD", pwd) };
-            }
+    let b = cat::format_handle(vec.clone(), "cd");
 
-            if let Ok(home) = env::var("HOME") {
-                if let Err(e) = set_current_dir(Path::new(&home)) {
-                    eprintln!("cd: {}", e);
-                }
-            }
-
-            if let Ok(pwd) = env::current_dir() {
-                unsafe { env::set_var("PWD", pwd) };
-            }
-        }
-        "." => print!(""),
-        ".." => match env::current_dir() {
-            Ok(current) => {
-                unsafe { env::set_var("OLDPWD", &current) };
-                if let Some(parent) = current.parent() {
-                    if let Err(e) = set_current_dir(parent) {
-                        eprintln!("cd: {}", e);
-                    }
-                }
-                if let Ok(pwd) = env::current_dir() {
-                    unsafe { env::set_var("PWD", pwd) };
-                }
-            }
-            Err(_) => eprintln!("cd: can't cd to .."),
-        },
-
-        "-" => {
-            if let Ok(oldpwd) = env::var("OLDPWD") {
-                if let Ok(pwd) = env::current_dir() {
-                    unsafe { env::set_var("OLDPWD", pwd) };
-                }
-                if let Err(e) = set_current_dir(&oldpwd) {
-                    eprintln!("cd: {}", e);
-                } else {
-                    println!("{}", oldpwd);
-                }
+    if !b.s.is_empty() || args.is_empty() {
+        if b.count < 2 || b.s[b.count..].is_empty() {
+            if let Some(first_char) = b.s.chars().find(|&c| c != '-')
+                && b.s.starts_with('-')
+            {
+                println!("cd: Illegal option '{}'", first_char);
             } else {
-                eprintln!("cd: OLDPWD not set");
-            }
-        }
-        _ => match metadata(vec[0]) {
-            Ok(meta) => {
-                if meta.is_dir() {
-                    if let Ok(pwd) = env::current_dir() {
-                        unsafe { env::set_var("OLDPWD", pwd) };
-                    }
+                let mut s = vec[0];
+                if vec[0] == "--" && vec.len() > 1 {
+                    s = vec[1];
+                }
+                match s {
+                    "~" | "" | "--" => {
+                        if let Ok(pwd) = env::current_dir() {
+                            unsafe { env::set_var("OLDPWD", pwd) };
+                        }
 
-                    if let Err(e) = set_current_dir(Path::new(vec[0])) {
-                        eprintln!("cd: {}", e);
+                        if let Ok(home) = env::var("HOME") {
+                            if let Err(e) = set_current_dir(Path::new(&home)) {
+                                eprintln!("cd: {}", e);
+                            }
+                        }
+
+                        if let Ok(pwd) = env::current_dir() {
+                            unsafe { env::set_var("PWD", pwd) };
+                        }
                     }
-                    if let Ok(pwd) = env::current_dir() {
-                        unsafe { env::set_var("PWD", pwd) };
+                    "." => print!(""),
+                    ".." => match env::current_dir() {
+                        Ok(current) => {
+                            unsafe { env::set_var("OLDPWD", &current) };
+                            if let Some(parent) = current.parent() {
+                                if let Err(e) = set_current_dir(parent) {
+                                    eprintln!("cd: {}", e);
+                                }
+                            }
+                            if let Ok(pwd) = env::current_dir() {
+                                unsafe { env::set_var("PWD", pwd) };
+                            }
+                        }
+                        Err(_) => eprintln!("cd: can't cd to .."),
+                    },
+
+                    "-" => {
+                        if let Ok(oldpwd) = env::var("OLDPWD") {
+                            if let Ok(pwd) = env::current_dir() {
+                                unsafe { env::set_var("OLDPWD", pwd) };
+                            }
+                            if let Err(e) = set_current_dir(&oldpwd) {
+                                eprintln!("cd: {}", e);
+                            } else {
+                                println!("{}", oldpwd);
+                            }
+                        } else {
+                            eprintln!("cd: OLDPWD not set");
+                        }
                     }
-                } else {
-                    eprintln!("cd: can't cd to {}", vec[0]);
+                    _ => match metadata(s) {
+                        Ok(meta) => {
+                            if meta.is_dir() {
+                                if let Ok(pwd) = env::current_dir() {
+                                    unsafe { env::set_var("OLDPWD", pwd) };
+                                }
+
+                                if let Err(e) = set_current_dir(Path::new(s)) {
+                                    eprintln!("cd: {}", e);
+                                }
+                                if let Ok(pwd) = env::current_dir() {
+                                    unsafe { env::set_var("PWD", pwd) };
+                                }
+                            } else {
+                                eprintln!("cd: can't cd to {}", s);
+                            }
+                        }
+                        Err(_) => {
+                            eprintln!("cd: can't cd to {}",s)
+                        }
+                    },
                 }
             }
-            Err(_) => {
-                eprintln!("cd: can't cd to {}", vec[0])
-            }
-        },
+        } else {
+            println!("cd: Illegal option --");
+        }
     }
 }

@@ -1,8 +1,10 @@
-use super::{cat, echo};
+use shell::*;
+
+use super::{cat};
 use std::{fs, path::Path};
 
 pub fn mkdir(args: &str) {
-    let temp = echo::new_ligne(args, false);
+    let temp = new_ligne(args, false);
 
     let mut vec = Vec::new();
     if temp.starts_with('\"') && temp.ends_with('\"')

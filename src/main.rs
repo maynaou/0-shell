@@ -3,6 +3,7 @@ mod commands;
 mod parser;
 use crate::commands::*;
 use fork::{Fork, fork};
+use shell::handle_quoit;
 fn main() {
     unsafe {
         signal(2, signal_handler);
@@ -43,7 +44,6 @@ fn main() {
                             unsafe {
                                 signal(2, signal_handler_exit);
                             }
-                            // Processus enfant - exécuter la commande
                             match command[0].trim_matches(|c| c == '"' || c == '\'') {
                                 "echo" => match command.len() > 1 {
                                     true => echo::echo(&command[1].trim()),
@@ -61,9 +61,9 @@ fn main() {
                                     true => cat::cat(&command[1].trim()),
                                     false => cat::cat(""),
                                 },
-                                "pwd" => match command.len() == 1 {
-                                    true => pwd::pwd(),
-                                    false => eprintln!("pwd: too many arguments"),
+                                "pwd" => match command.len() > 1 {
+                                    true => pwd::pwd(&command[1].trim()),
+                                    false => pwd::pwd(""),
                                 },
                                 "cp" => match command.len() > 1 {
                                     true => cp::cp(&command[1].trim()),
@@ -75,11 +75,8 @@ fn main() {
                                 },
                                 "rm" => rm::rm(&command[1].trim()),
                                 _ => {
-                                    if command[0].starts_with('\"') && command[0].ends_with('\"') {
-                                        println!("{}: not found", command[0].trim_matches('\"'));
-                                    } else {
-                                        println!("{}: not found", command[0].trim_matches('\''));
-                                    }
+                                    let temp = handle_quoit(command[0].to_string());
+                                    println!("{}: not found", temp);
                                 }
                             }
                             std::process::exit(0);
