@@ -50,18 +50,22 @@ pub fn read_command() -> Option<String> {
 }
 
 
-pub fn parsels(mut result: (HashMap<String, Vec<String>>, bool)) {
+pub fn parsels(mut result: (HashMap<String, Vec<String>>, bool, bool, u64)) {
     if !result.1 {
         println!("Invalid flag found");
         return;
     }
+
+    // println!("{:?}",result);
     let result_len = result.0.len();
     let mut countresult = 0;
     for (key, files) in &mut result.0 {
         let filen = files.len();
         let mut counter = 1;
         if result_len == 1 || key == "." {
-            // files.sort();
+            if result.2 {
+                println!("{}",result.3);
+            }
             for file in files {
                 if counter != filen {
                     println!("{}", file);

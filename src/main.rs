@@ -54,8 +54,8 @@ fn main() {
                                     false => println!("mkdir: missing operand"),
                                 },
                                 "ls" => {
-                                    let result = ls::ls(command[1..].to_vec());
-                                    parser::parsels(result);
+                                     let result = ls::ls(command[1..].to_vec());
+                                     parser::parsels(result);
                                 }
                                 "cat" => match command.len() > 1 {
                                     true => cat::cat(&command[1].trim()),

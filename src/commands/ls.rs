@@ -7,24 +7,35 @@ use std::os::unix::fs::MetadataExt;
 use std::time::{UNIX_EPOCH, SystemTime};
 use users::{get_user_by_uid, get_group_by_gid};
 use chrono::{DateTime, Local, Duration};
-pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
+pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64) {
     let mut files: HashMap<String, Vec<String>> = HashMap::new();
     let validfomart = vformat(flags);
     let flagsvalid = validflags(&validfomart);
     if !flagsvalid {
-        return (files,false)
+        return (files,false,false,0)
     }
     let flaga = checka(&validfomart);
     let flagf = checkf(&validfomart);
     let flagl = checkl(&validfomart);
     let  path = getdirnames(&validfomart);
+    let mut totalbolcks = 0;
     for arg in &path {
         files.insert(arg.to_string(), Vec::new());
         match fs::read_dir(&arg) {
             Ok(iterdir) => {
                 let mut entries: Vec<fs::DirEntry> = iterdir.filter_map(Result::ok).collect();
+                if flaga {
+                    let current_dir = Path::new(arg);
+                    let dot = current_dir.join(".");
+                    let dotdot = current_dir.join("..");
+                    // println!("{:?}", fs::metadata(dot).file_name());
+                    
+                            
+                    }
                 entries.sort_by_key(|e| e.file_name());
+                //    println!("{:?}",entries);
                 for iter in entries {
+                    // println!("{:?}", iter);
                     let typofiter = iter.file_type().unwrap();
                     let symbol = match () {
                         _ if typofiter.is_dir() => "/",
@@ -34,14 +45,21 @@ pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
                         _ if is_executable(&iter.path()) => "*",
                         _ => "",
                     };
-        
+                    // let aloo = fs::metadata(iter.path()).unwrap();
+                    // let blocks = aloo.blocks();
+                    // totalbolcks += blocks;
+
                     let filename_os = iter.file_name();
                     let mut filename = filename_os.to_string_lossy().into_owned();
-        
+                    // let metadata = fs::metadata(path).unwrap();
                     if let Some(vec) = files.get_mut(arg) {
                         if flaga {
                             if flagl {
-                                filename.insert_str(0, &generatel(iter.path()));
+
+                                    let aloo = fs::metadata(iter.path()).unwrap();
+                                    let blocks = aloo.blocks();
+                                    totalbolcks += blocks;
+                                  filename.insert_str(0, &generatel(iter.path()));
                                 if typofiter.is_symlink() {
                                     match std::fs::read_link(&iter.path()) {
                                         Ok(target) => filename.push_str(&format!(" -> {}", target.display())),
@@ -60,6 +78,9 @@ pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
                         } else {
                             if !filename.starts_with('.') {
                                 if flagl {
+                                        let aloo = fs::metadata(iter.path()).unwrap();
+                                        let blocks = aloo.blocks();
+                                        totalbolcks += blocks;
                                     filename.insert_str(0, &generatel(iter.path()));
                                     if typofiter.is_symlink() {
                                         match std::fs::read_link(&iter.path()) {
@@ -89,10 +110,10 @@ pub fn ls(flags : Vec<String>) -> (HashMap<String, Vec<String>>, bool) {
         }
         
     }
-        // for (_, vec_files) in &mut files {
-        //     vec_files.sort();
-        // }
-    (files, true)
+
+    let khdam = totalbolcks/2;
+    
+    (files, true, flagl, khdam)
 }
 
 fn generatel(file: impl AsRef<Path>) -> String {
@@ -132,9 +153,8 @@ fn generatel(file: impl AsRef<Path>) -> String {
 fn format_permissions(meta: &fs::Metadata) -> String {
     let file_type = meta.file_type();
     let mode = meta.mode();
-
+    // println!("{}",mode);
     let mut result = String::new();
-
     if file_type.is_dir() {
         result.push('d');
     } else if file_type.is_symlink() {
@@ -153,14 +173,10 @@ fn format_permissions(meta: &fs::Metadata) -> String {
 
     for i in (0..3).rev() {
         let shift = i * 3;
-
         result.push(if (mode >> (shift + 2)) & 1 != 0 { 'r' } else { '-' });
-
         result.push(if (mode >> (shift + 1)) & 1 != 0 { 'w' } else { '-' });
-
         let exec = (mode >> shift) & 1 != 0;
         if shift == 6 {
-
             if (mode & 0o4000) != 0 {
                 result.push(if exec { 's' } else { 'S' });
             } else {
