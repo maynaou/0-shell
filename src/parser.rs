@@ -64,7 +64,9 @@ pub fn parsels(mut result: (HashMap<String, Vec<String>>, bool, bool, u64)) {
         let mut counter = 1;
         if result_len == 1 || key == "." {
             if result.2 {
-                println!("{}",result.3);
+                if result.3 != 0 {
+                    println!("{}",result.3);
+                }
             }
             for file in files {
                 if counter != filen {
