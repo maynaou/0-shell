@@ -1,8 +1,16 @@
-use super::cat;
+use shell::*;
 use std::{fs, fs::metadata, io, io::Write, path::Path};
 pub fn rm(args: &str) {
-    let vec: Vec<&str> = args.split_whitespace().collect();
-    let b = cat::format_handle(vec.clone(),"rm");
+    let mut vec = Vec::new();
+    if args.starts_with('\"') && args.ends_with('\"')
+        || args.starts_with('\'') && args.ends_with('\'')
+    {
+        vec.push(&args[1..args.len() - 1]);
+    } else {
+        let v_arg: Vec<&str> = args.split_whitespace().collect();
+        vec.extend_from_slice(&v_arg);
+    }
+    let b = format_handle(vec.clone(),"rm");
     if !b.s.is_empty() {
         if b.count < 2 {
             if let Some(first_char) = b.s.chars().find(|&c| c != '-')  && b.s.starts_with('-')  {

@@ -1,4 +1,4 @@
-use super::cat;
+use shell::*;
 use std::{env, env::set_current_dir, fs::metadata, path::Path};
 
 pub fn cd(args: &str) {
@@ -15,7 +15,7 @@ pub fn cd(args: &str) {
         }
     }
 
-    let b = cat::format_handle(vec.clone(), "cd");
+    let b = format_handle(vec.clone(), "cd");
 
     if !b.s.is_empty() || args.is_empty() {
         if b.count < 2 || b.s[b.count..].is_empty() {

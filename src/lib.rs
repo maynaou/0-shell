@@ -55,3 +55,63 @@ pub fn handle_quoit(mut s : String) -> String {
     }
     s
 }
+#[derive(Debug)]
+pub struct Format {
+    pub count: usize,
+    pub s: String,
+}
+
+pub fn format_handle(vec: Vec<&str>,flag : &str) -> Format {
+    let mut count = 0;
+    let mut s = String::new();
+    for i in 0..vec.len() {
+        for c in vec[i].chars() {
+            if c == '-' {
+                count += 1;
+            } else {
+                break;
+            }
+        }
+
+        if count == 0 {
+            s =  vec[i].to_string();
+        }
+
+        match flag {
+            "cat" | "mkdir" | "cp" | "mv" if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 2)  => {
+                return Format {
+                    count,
+                    s: vec[i].to_string(),
+                };
+            },
+
+            "rm"  if count > 0 && (count < 2 || !vec[i][count..].is_empty() || count > 3)  => {
+                if vec[i] != "-r" {
+                      return Format {
+                      count,
+                      s: vec[i].to_string(),
+                     };
+                }
+                count = 0;
+            }
+
+             "pwd" | "cd" if  !vec[i][count..].is_empty() || count > 0 => {
+                      return Format {
+                      count,
+                      s: vec[i].to_string(),
+                     };
+              }
+
+            _ => {
+                 count = 0;
+                 continue
+            },
+         }
+         
+    }
+
+    return Format {
+        count: 0,
+        s: s,
+    };
+}

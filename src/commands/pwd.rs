@@ -1,4 +1,4 @@
-use super::cat;
+use shell::*;
 use std::env;
 
 pub fn pwd(args: &str) {
@@ -11,7 +11,7 @@ pub fn pwd(args: &str) {
         let v_arg: Vec<&str> = args.split_whitespace().collect();
         vec.extend_from_slice(&v_arg);
     }
-    let b = cat::format_handle(vec.clone(), "pwd");
+    let b = format_handle(vec.clone(), "pwd");
     if !b.s.is_empty() || args.is_empty() {
         if b.count < 2 || b.s[b.count..].is_empty() {
             if let Some(first_char) = b.s.chars().find(|&c| c != '-')
