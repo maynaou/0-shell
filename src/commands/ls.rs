@@ -24,11 +24,11 @@ fn is_socket(path: &Path) -> bool {
 
 // ---------------- Main ls function ----------------
 
-pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64) {
+pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool) {
     let mut files: HashMap<String, Vec<String>> = HashMap::new();
     let validfomart = vformat(flags);
     if !validflags(&validfomart) {
-        return (files, false, false, 0);
+        return (files, false, false);
     }
 
     let flaga = checka(&validfomart);
@@ -36,7 +36,7 @@ pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64)
     let flagl = checkl(&validfomart);
     let paths = getdirnames(&validfomart);
     let mut totalblocks = 0;
-
+    // println!("{:?}", paths);
     for arg in &paths {
         files.insert(arg.clone(), Vec::new());
         let path = Path::new(arg);
@@ -44,6 +44,7 @@ pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64)
             Ok(meta) => meta.file_type().is_symlink(),
             Err(_) => false,
         };
+        //    println!("{:?}",arg);
         if path.is_dir() {
             // Directory logic
             match fs::read_dir(path) {
@@ -62,7 +63,8 @@ pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64)
                         } else {
                             entry.clone()
                         };
-
+                        // println!("{:?}",full_path);
+       
                         let meta = match fs::symlink_metadata(&full_path) {
                             Ok(m) => m,
                             Err(_) => continue,
@@ -126,13 +128,24 @@ pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64)
             }
         } else if path.is_file() || is_symlink {
             // File logic
-            if let Some(vec) = files.get_mut(arg) {
-                let mut display_name = arg.clone();
-                if flagl {
-                    display_name.insert_str(0, &generatel(path));
-                }
-                vec.push(display_name);
+                if let Some(vec) = files.get_mut(arg) {
+        let mut display_name = arg.clone();
+        if flagl {
+            display_name.insert_str(0, &generatel(path));
+
+            // If it's a symlink, append its target
+            if is_symlink {
+                display_name.push_str(
+                    &match std::fs::read_link(path) {
+                        Ok(target) => format!(" -> {}", target.display()),
+                        Err(_) => " -> ?".to_string(),
+                    },
+                );
             }
+        }
+
+        vec.push(display_name);
+    }
         } else {
             // Path does not exist
                 println!("...{:?}",path);
@@ -140,10 +153,18 @@ pub fn ls(flags: Vec<String>) -> (HashMap<String, Vec<String>>, bool, bool, u64)
                     vec.push(format!("ls: cannot access '{}': No such file or directory", arg));
             }
         }
+        let khdam = totalblocks / 2;
+        if flagl {
+            if let Some(vec) = files.get_mut(arg) {
+               // format!("total {}",khdam)
+               vec.insert(0, format!("total {}",khdam));
+            }
+        }
+         totalblocks = 0;
     }
 
-    let khdam = totalblocks / 2;
-    (files, true, flagl, khdam)
+
+    (files, true, flagl)
 }
 
 
